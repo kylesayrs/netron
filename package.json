@@ -28,7 +28,8 @@
         "coverage": "node package.js coverage",
         "analyze": "node package.js analyze",
         "update": "node package.js update",
-        "pull": "node package.js pull"
+        "pull": "node package.js pull",
+        "debug": "nodemon -e html,js,json,py --watch source --exec \"npm run start\""
     },
     "dependencies": {
         "electron-updater": "6.1.8"
@@ -37,7 +38,8 @@
         "@electron/notarize": "2.3.2",
         "electron": "30.0.9",
         "electron-builder": "24.13.3",
-        "eslint": "9.4.0"
+        "eslint": "9.4.0",
+        "nodemon": "^3.1.3"
     },
     "build": {
         "extends": "publish/electron-builder.json"
