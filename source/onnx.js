@@ -56,6 +56,7 @@ onnx.Model = class {
         this._description = model.doc_string;
         this._metadata = [];
         this._imports = null;
+        this._metrics = [];
         const imports = new Map();
         if (model.opset_import && model.opset_import.length > 0) {
             for (const opset_import of model.opset_import) {
@@ -291,6 +292,7 @@ onnx.Value = class {
 onnx.Node = class {
 
     constructor(context, node, inputs, outputs) {
+        this.context = context;
         const domain = node.domain || 'ai.onnx';
         const op_type = node.op_type;
         const overload = node.overload || '';
@@ -408,6 +410,70 @@ onnx.Node = class {
                 this.chain.push(node);
             }
         }
+
+        const tmp = this.metrics;
+    }
+
+    // BOOKmark
+    get metrics() {
+        console.log(this.type.name)
+        console.log(this.inputs)
+
+        let weight = undefined;
+        switch (this.type.name) {
+            case 'Conv':
+                weight = this.inputs.find(input => input.name == 'W');
+                break;
+
+            case 'ConvInteger':
+            case 'QLinearConv':
+                weight = this.inputs.find(input => input.name == 'w');
+                break;
+
+            case 'QLinearMatMul':
+                weight = this.inputs.find(input => (
+                    (input.name == 'a' || input.name == 'b') &&
+                    input?.value?.[0]?.initializer != undefined
+                ));
+                break;
+
+            case 'MatMul':
+            case 'Gemm':
+            case 'MatMulInteger':
+                weight = this.inputs.find(input => input?.[0]?.initializer != undefined);
+                break;
+        }
+
+        let bias = undefined;
+        switch (this.type.name) {
+            case 'Conv':
+                weight = this.inputs.find(input => input.name == 'B');
+                break;
+
+            case 'Gemm':
+                weight = this.inputs.find(input => input.name == 'C');
+                break;
+
+            case 'QLinearConv':
+                weight = this.inputs.find(input => input.name == 'B');
+                break;
+        }
+
+        let metrics = [];
+
+        if (weight != undefined) {
+            const weight_tensor = weight?.value?.[0]?.initializer?.values;
+            if (weight_tensor != undefined) {
+                // bookmark
+                //console.log(weight_tensor);
+                //console.log(weight_tensor.length);
+                console.log(this.context.tensor(weight?.value?.[0]?.name))
+                const argument = new onnx.Argument('parameters', weight_tensor.length);
+                //metrics.push
+            }
+        }
+
+        return 
     }
 };
 
